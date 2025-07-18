@@ -7,7 +7,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=16G
-#SBATCH --partition=normal
+#SBATCH --partition=free
 
 # Load required modules
 module load python/3.10.2

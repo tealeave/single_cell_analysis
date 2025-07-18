@@ -88,7 +88,7 @@ process cellbender {
     echo "Processing ${sample_id} with CellBender"
     
     # Run CellBender through Python wrapper
-    uv run python src/preprocessing.py \
+    uv run python ${baseDir}/../src/preprocessing.py \
         --input ${params.input_dir} \
         --output ${params.output_dir}/cellbender \
         --sample ${sample_id} \
@@ -134,7 +134,7 @@ process qc_filter {
     
     echo "QC analysis for ${sample_id}"
     
-    uv run python src/qc_filter.py \
+    uv run python ${baseDir}/../src/qc_filter.py \
         --input ${params.output_dir}/cellbender \
         --output ${params.output_dir}/qc \
         --sample ${sample_id} \
@@ -186,7 +186,7 @@ process integration {
     mkdir -p temp_input
     cp ${filtered_files} temp_input/
     
-    uv run python src/integration.py \
+    uv run python ${baseDir}/../src/integration.py \
         --input temp_input \
         --output ${params.output_dir}/integrated \
         ${params.debug ? '--no-tuning' : ''}
@@ -232,7 +232,7 @@ process annotation {
     
     echo "Running annotation pipeline"
     
-    uv run python src/annotation.py \
+    uv run python ${baseDir}/../src/annotation.py \
         --input ${params.output_dir}/integrated \
         --output ${params.output_dir}/annotations
     
@@ -361,32 +361,17 @@ process create_summary_report {
     </html>
     EOF
     
-    # Create summary JSON
-    cat > summary_stats.json << 'EOF'
-{"status": "completed", "timestamp": "TIMESTAMP_PLACEHOLDER", "debug_mode": "DEBUG_MODE_PLACEHOLDER"}
-EOF
-    
-    # Create a simple Python script to update the JSON
-    cat > update_json.py << 'PY_EOF'
+    # Create summary JSON with current timestamp
+    python3 -c "
 import json
-import sys
 import datetime
-
-# Read current JSON
-with open('summary_stats.json', 'r') as f:
-    data = json.load(f)
-
-# Update with actual values
-data['timestamp'] = datetime.datetime.now().isoformat()
-data['debug_mode'] = sys.argv[1] if len(sys.argv) > 1 else 'false'
-
-# Write updated JSON
 with open('summary_stats.json', 'w') as f:
-    json.dump(data, f, indent=2)
-PY_EOF
-    
-    python update_json.py ${params.debug}
-    rm update_json.py
+    json.dump({
+        'status': 'completed',
+        'timestamp': datetime.datetime.now().isoformat(),
+        'debug_mode': '${params.debug}'
+    }, f, indent=2)
+"
     """
 }
 
