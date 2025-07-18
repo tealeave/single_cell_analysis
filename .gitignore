@@ -210,3 +210,10 @@ __marimo__/
 
 # Large files
 data/
+
+# Nextflow-related
+.nextflow/
+.nextflow.log*
+.nextflow.*
+work/
+reports/
